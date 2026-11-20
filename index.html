@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Pokédex</title>
+</head>
+
+<body>
+
+    <h1>Pokémon Pokédex</h1>
+    <p id="loading">Loading Pokémon...</p>
+    <div id="pokemon-list"></div>
+
+    <script>
+        const pokemonList = document.getElementById("pokemon-list");
+        const loading = document.getElementById("loading");
+
+        fetch("https://pokeapi.co/api/v2/pokemon?limit=20")
+            .then(response => response.json())
+            .then(data => {
+
+                const requests = data.results.map(pokemon =>
+                    fetch(pokemon.url).then(response => response.json())
+                );
+
+                return Promise.all(requests);
+            })
+            .then(pokemonData => {
+
+                loading.style.display = "none";
+
+                pokemonData.forEach(pokemon => {
+
+                    const card = document.createElement("div");
+                    card.className = "pokemon-card";
+
+                    card.innerHTML = `
+                        <img src="${pokemon.sprites.other['official-artwork'].front_default}"
+                             alt="${pokemon.name}">
+
+                        <h2>${pokemon.name}</h2>
+
+                        <p>#${String(pokemon.id).padStart(3, '0')}</p>
+                    `;
+
+                    pokemonList.appendChild(card);
+                });
+
+            })
+            .catch(error => {
+                loading.textContent = "Unable to load Pokémon.";
+                console.error("API Error:", error);
+            });
+    </script>
+
+</body>
+</html>
